@@ -2,6 +2,31 @@
    REMOTE JOBS — COMPLETE STYLESHEET
    ============================================= */
 
+/* ── AdSense ── */
+.adsense-wrap {
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+}
+.hero-ad-wrap {
+  margin: 1.5rem auto 0;
+  max-width: 900px;
+  width: 100%;
+}
+.infeed-ad {
+  width: 100%;
+  margin: 0.25rem 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--white);
+  border: 1px dashed var(--line);
+}
+.prefooter-ad {
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+  padding: 0 1.5rem;
+}
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
 
 :root {

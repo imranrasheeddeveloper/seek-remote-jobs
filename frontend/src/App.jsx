@@ -106,6 +106,28 @@ const Icons = {
   ),
 };
 
+const ADSENSE_CLIENT = "ca-pub-1140863366083907";
+
+function AdSenseAd({ slot, format = "auto", style = {} }) {
+  useEffect(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {}
+  }, []);
+  return (
+    <div className="adsense-wrap" aria-label="Advertisement">
+      <ins
+        className="adsbygoogle"
+        style={{ display: "block", ...style }}
+        data-ad-client={ADSENSE_CLIENT}
+        data-ad-slot={slot}
+        data-ad-format={format}
+        data-full-width-responsive="true"
+      />
+    </div>
+  );
+}
+
 async function api(path, options = {}) {
   const res = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -700,6 +722,10 @@ export default function App() {
             <div className="hsr-sep" />
             <div className="hsr-item"><span className="hsr-num">Free</span><span className="hsr-lbl">Always</span></div>
           </div>
+          <div className="hero-ad-wrap">
+            <AdSenseAd slot="5291038764" format="horizontal" style={{ minHeight: 90 }} />
+          </div>
+
           <div className="company-strip">
             <span className="cs-label">Featuring jobs from:</span>
             <div className="cs-pills">
@@ -825,10 +851,10 @@ export default function App() {
             </div>
           ) : (
             <div className="jobs-list" role="list">
-              {jobs.map((job) => {
+              {jobs.reduce((acc, job, idx) => {
                 const wt = getWorkType(job.location);
                 const worldwide = isWorldwideRemote(job.location);
-                return (
+                acc.push(
                   <article
                     className="job-card"
                     key={job.id}
@@ -876,7 +902,15 @@ export default function App() {
                     </div>
                   </article>
                 );
-              })}
+                if ((idx + 1) % 5 === 0 && idx !== jobs.length - 1) {
+                  acc.push(
+                    <div className="infeed-ad" key={`ad-${idx}`}>
+                      <AdSenseAd slot="5291038764" format="fluid" style={{ display: "block" }} />
+                    </div>
+                  );
+                }
+                return acc;
+              }, [])}
             </div>
           )}
 
@@ -929,6 +963,11 @@ export default function App() {
           <button className="cta-btn" onClick={scrollToJobs}>Browse Remote Jobs <Icons.ArrowRight /></button>
         </div>
       </section>
+
+      {/* PRE-FOOTER AD */}
+      <div className="prefooter-ad">
+        <AdSenseAd slot="5291038764" format="horizontal" style={{ minHeight: 90 }} />
+      </div>
 
       {/* FOOTER */}
       <footer className="footer">
