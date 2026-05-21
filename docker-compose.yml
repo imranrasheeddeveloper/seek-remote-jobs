@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: seekremotejobs-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-jobs}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-jobs}
+      POSTGRES_DB: ${DB_NAME:-jobs}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-jobs} -d ${DB_NAME:-jobs}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - seekremotejobs-network
+    restart: unless-stopped
+
+  # Node.js Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: seekremotejobs-backend
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: postgres://${DB_USER:-jobs}:${DB_PASSWORD:-jobs}@postgres:5432/${DB_NAME:-jobs}?sslmode=disable
+      PGSSL: disable
+      ADMIN_REFRESH_TOKEN: ${ADMIN_REFRESH_TOKEN:-local-admin-token}
+      PORT: 4000
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - seekremotejobs-network
+    restart: unless-stopped
+    volumes:
+      - ./backend/src:/app/backend/src:ro
+
+  # Nginx Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: seekremotejobs-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - seekremotejobs-network
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  seekremotejobs-network:
+    driver: bridge
