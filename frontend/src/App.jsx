@@ -112,6 +112,29 @@ const ADSENSE_SLOTS = {
   inFeed: import.meta.env.VITE_ADSENSE_SLOT_INFEED || "",
   preFooter: import.meta.env.VITE_ADSENSE_SLOT_PREFOOTER || "",
 };
+const CONSENT_STORAGE_KEY = "srj_consent_v1";
+const DEFAULT_CONSENT = {
+  ad_storage: false,
+  analytics_storage: false,
+  ad_user_data: false,
+  ad_personalization: false,
+};
+
+function applyGoogleConsent(consent) {
+  if (typeof window === "undefined") return;
+
+  if (typeof window.gtag === "function") {
+    window.gtag("consent", "update", {
+      ad_storage: consent.ad_storage ? "granted" : "denied",
+      analytics_storage: consent.analytics_storage ? "granted" : "denied",
+      ad_user_data: consent.ad_user_data ? "granted" : "denied",
+      ad_personalization: consent.ad_personalization ? "granted" : "denied",
+    });
+  }
+
+  window.adsbygoogle = window.adsbygoogle || [];
+  window.adsbygoogle.requestNonPersonalizedAds = consent.ad_personalization ? 0 : 1;
+}
 
 function AdSenseAd({ slot, format = "auto", style = {} }) {
   if (!slot) return null;
@@ -506,6 +529,9 @@ export default function App() {
   const [locations, setLocations] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [showConsentBanner, setShowConsentBanner] = useState(false);
+  const [showConsentManage, setShowConsentManage] = useState(false);
+  const [consentPrefs, setConsentPrefs] = useState(DEFAULT_CONSENT);
 
   const jobsSectionRef = useRef(null);
 
@@ -598,6 +624,29 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CONSENT_STORAGE_KEY);
+      if (!raw) {
+        applyGoogleConsent(DEFAULT_CONSENT);
+        setShowConsentBanner(true);
+        return;
+      }
+      const saved = JSON.parse(raw);
+      const normalized = {
+        ad_storage: Boolean(saved.ad_storage),
+        analytics_storage: Boolean(saved.analytics_storage),
+        ad_user_data: Boolean(saved.ad_user_data),
+        ad_personalization: Boolean(saved.ad_personalization),
+      };
+      setConsentPrefs(normalized);
+      applyGoogleConsent(normalized);
+    } catch {
+      applyGoogleConsent(DEFAULT_CONSENT);
+      setShowConsentBanner(true);
+    }
+  }, []);
+
+  useEffect(() => {
     loadJobs(1);
   }, [companyFilter, locationFilter, daysAgoFilter, sortBy]);
 
@@ -630,6 +679,27 @@ export default function App() {
 
   function scrollToJobs() {
     jobsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function persistConsent(next) {
+    setConsentPrefs(next);
+    localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(next));
+    applyGoogleConsent(next);
+    setShowConsentBanner(false);
+    setShowConsentManage(false);
+  }
+
+  function acceptAllConsent() {
+    persistConsent({
+      ad_storage: true,
+      analytics_storage: true,
+      ad_user_data: true,
+      ad_personalization: true,
+    });
+  }
+
+  function denyAllConsent() {
+    persistConsent(DEFAULT_CONSENT);
   }
 
   const totalPages = pagination.pages || 1;
@@ -1036,6 +1106,9 @@ export default function App() {
               <a href="#how-it-works" className="footer-link-btn">How It Works</a>
               <a href="#why-remote" className="footer-link-btn">Why Work Remotely?</a>
               <button className="footer-link-btn" onClick={scrollToJobs}>All Remote Jobs</button>
+              <button className="footer-link-btn" onClick={() => { setShowConsentBanner(true); setShowConsentManage(true); }}>
+                Privacy & Cookie Settings
+              </button>
             </div>
           </div>
         </div>
@@ -1046,6 +1119,59 @@ export default function App() {
 
       {selectedJob && (
         <JobSheet job={selectedJob} onClose={() => setSelectedJob(null)} />
+      )}
+
+      {showConsentBanner && (
+        <div className="consent-banner" role="dialog" aria-label="Cookie consent" aria-modal="false">
+          <p className="consent-title">Your privacy choices</p>
+          <p className="consent-text">
+            We use cookies for analytics and advertising. You can consent, do not consent, or manage options.
+          </p>
+
+          <div className="consent-actions">
+            <button className="consent-btn consent-accept" onClick={acceptAllConsent}>Consent</button>
+            <button className="consent-btn consent-deny" onClick={denyAllConsent}>Do not consent</button>
+            <button className="consent-btn consent-manage" onClick={() => setShowConsentManage((v) => !v)}>Manage options</button>
+          </div>
+
+          {showConsentManage && (
+            <div className="consent-manage-panel">
+              <label className="consent-option">
+                <input
+                  type="checkbox"
+                  checked={consentPrefs.analytics_storage}
+                  onChange={(e) => setConsentPrefs((prev) => ({ ...prev, analytics_storage: e.target.checked }))}
+                />
+                Analytics cookies
+              </label>
+              <label className="consent-option">
+                <input
+                  type="checkbox"
+                  checked={consentPrefs.ad_storage}
+                  onChange={(e) => setConsentPrefs((prev) => ({ ...prev, ad_storage: e.target.checked }))}
+                />
+                Ad storage
+              </label>
+              <label className="consent-option">
+                <input
+                  type="checkbox"
+                  checked={consentPrefs.ad_user_data}
+                  onChange={(e) => setConsentPrefs((prev) => ({ ...prev, ad_user_data: e.target.checked }))}
+                />
+                Ad user data
+              </label>
+              <label className="consent-option">
+                <input
+                  type="checkbox"
+                  checked={consentPrefs.ad_personalization}
+                  onChange={(e) => setConsentPrefs((prev) => ({ ...prev, ad_personalization: e.target.checked }))}
+                />
+                Ad personalization
+              </label>
+              <button className="consent-save" onClick={() => persistConsent(consentPrefs)}>Save choices</button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
