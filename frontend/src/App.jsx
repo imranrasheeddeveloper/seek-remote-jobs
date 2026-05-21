@@ -107,8 +107,14 @@ const Icons = {
 };
 
 const ADSENSE_CLIENT = "ca-pub-1140863366083907";
+const ADSENSE_SLOTS = {
+  hero: import.meta.env.VITE_ADSENSE_SLOT_HERO || "",
+  inFeed: import.meta.env.VITE_ADSENSE_SLOT_INFEED || "",
+  preFooter: import.meta.env.VITE_ADSENSE_SLOT_PREFOOTER || "",
+};
 
 function AdSenseAd({ slot, format = "auto", style = {} }) {
+  if (!slot) return null;
   useEffect(() => {
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
@@ -722,9 +728,11 @@ export default function App() {
             <div className="hsr-sep" />
             <div className="hsr-item"><span className="hsr-num">Free</span><span className="hsr-lbl">Always</span></div>
           </div>
-          <div className="hero-ad-wrap">
-            <AdSenseAd slot="5291038764" format="horizontal" style={{ minHeight: 90 }} />
-          </div>
+          {ADSENSE_SLOTS.hero && (
+            <div className="hero-ad-wrap">
+              <AdSenseAd slot={ADSENSE_SLOTS.hero} format="horizontal" style={{ minHeight: 90 }} />
+            </div>
+          )}
 
           <div className="company-strip">
             <span className="cs-label">Featuring jobs from:</span>
@@ -902,10 +910,10 @@ export default function App() {
                     </div>
                   </article>
                 );
-                if ((idx + 1) % 5 === 0 && idx !== jobs.length - 1) {
+                if (ADSENSE_SLOTS.inFeed && (idx + 1) % 5 === 0 && idx !== jobs.length - 1) {
                   acc.push(
                     <div className="infeed-ad" key={`ad-${idx}`}>
-                      <AdSenseAd slot="5291038764" format="fluid" style={{ display: "block" }} />
+                      <AdSenseAd slot={ADSENSE_SLOTS.inFeed} format="fluid" style={{ display: "block" }} />
                     </div>
                   );
                 }
@@ -965,9 +973,11 @@ export default function App() {
       </section>
 
       {/* PRE-FOOTER AD */}
-      <div className="prefooter-ad">
-        <AdSenseAd slot="5291038764" format="horizontal" style={{ minHeight: 90 }} />
-      </div>
+      {ADSENSE_SLOTS.preFooter && (
+        <div className="prefooter-ad">
+          <AdSenseAd slot={ADSENSE_SLOTS.preFooter} format="horizontal" style={{ minHeight: 90 }} />
+        </div>
+      )}
 
       {/* FOOTER */}
       <footer className="footer">
