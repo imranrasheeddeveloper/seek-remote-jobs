@@ -972,6 +972,37 @@ export default function App() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section className="faq-section" aria-label="Remote jobs frequently asked questions">
+        <div className="section-wrap">
+          <div className="sec-label">FAQ</div>
+          <h2 className="sec-heading">Remote Jobs FAQ</h2>
+          <p className="sec-sub">Quick answers to common questions about finding and applying to remote jobs.</p>
+          <div className="faq-list">
+            <details className="faq-item">
+              <summary>Where can I find remote tech jobs?</summary>
+              <p>SeekRemoteJobs aggregates remote roles from top company career pages, so you can browse fresh openings in one place.</p>
+            </details>
+            <details className="faq-item">
+              <summary>Are these jobs fully remote?</summary>
+              <p>Most listings are remote-first. You can also see hybrid and onsite listings when companies publish those roles.</p>
+            </details>
+            <details className="faq-item">
+              <summary>Is SeekRemoteJobs free to use?</summary>
+              <p>Yes. It is completely free for job seekers, with direct links to official company application pages.</p>
+            </details>
+            <details className="faq-item">
+              <summary>How often are jobs updated?</summary>
+              <p>Jobs are refreshed daily from supported sources, and stale postings are removed over time.</p>
+            </details>
+            <details className="faq-item">
+              <summary>Can I filter by role and location?</summary>
+              <p>Yes. Use filters for title, company, location, posted date, and sort order to narrow results quickly.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
       {/* PRE-FOOTER AD */}
       {ADSENSE_SLOTS.preFooter && (
         <div className="prefooter-ad">

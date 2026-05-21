@@ -232,19 +232,19 @@ app.get("/sitemap.xml", async (_req, res) => {
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://seekremotejobs.com#jobs</loc>
+    <loc>https://seekremotejobs.com?sort=newest</loc>
     <lastmod>${today}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://seekremotejobs.com#how-it-works</loc>
+    <loc>https://seekremotejobs.com?title=remote</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://seekremotejobs.com#why-remote</loc>
+    <loc>https://seekremotejobs.com?location=Worldwide</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
