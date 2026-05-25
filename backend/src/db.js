@@ -321,6 +321,35 @@ export async function getAllJobs() {
   }
 }
 
+export async function getJobById(id) {
+  try {
+    const result = await exec(
+      `
+        SELECT
+          id,
+          title,
+          company,
+          location,
+          url,
+          source_label AS "sourceLabel",
+          careers_url AS "careersUrl",
+          updated_at AS "updatedAt",
+          created_at AS "createdAt",
+          source_key,
+          hash
+        FROM jobs
+        WHERE id = $1
+        LIMIT 1
+      `,
+      [id]
+    );
+    return result.rows[0] || null;
+  } catch (err) {
+    console.error("Get job by id error:", err);
+    return null;
+  }
+}
+
 export async function getJobCount() {
   try {
     const result = await exec("SELECT COUNT(*)::int AS count FROM jobs");

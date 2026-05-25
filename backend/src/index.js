@@ -12,6 +12,7 @@ import {
   getGlobalMetaValue,
   setGlobalMetaValue,
   getAllJobs,
+  getJobById,
 } from "./db.js";
 
 const app = express();
@@ -46,11 +47,101 @@ function toDateOnly(value) {
   return d.toISOString().split("T")[0];
 }
 
+function htmlEscape(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 app.use(cors());
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
+});
+
+// SEO: Indexable job detail landing pages
+app.get("/jobs/:id", async (req, res) => {
+  try {
+    const job = await getJobById(req.params.id);
+    if (!job) {
+      res.status(404).type("text/plain").send("Job not found");
+      return;
+    }
+
+    const title = `${job.title} at ${job.company} | Remote Job | SeekRemoteJobs`;
+    const description = `${job.title} role at ${job.company}. ${job.location || "Remote"}. View details and apply on the official careers page.`;
+    const pageUrl = `https://seekremotejobs.com/jobs/${encodeURIComponent(job.id)}`;
+    const applyUrl = job.url || "https://seekremotejobs.com";
+    const lastmod = toDateOnly(job.updatedAt);
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "JobPosting",
+      title: job.title,
+      description,
+      datePosted: job.updatedAt || new Date().toISOString(),
+      hiringOrganization: {
+        "@type": "Organization",
+        name: job.company,
+      },
+      jobLocationType: "TELECOMMUTE",
+      applicantLocationRequirements: {
+        "@type": "Country",
+        name: "Worldwide",
+      },
+      employmentType: "FULL_TIME",
+      url: pageUrl,
+      directApply: true,
+    };
+
+    const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${htmlEscape(title)}</title>
+    <meta name="description" content="${htmlEscape(description)}" />
+    <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" />
+    <link rel="canonical" href="${htmlEscape(pageUrl)}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="${htmlEscape(title)}" />
+    <meta property="og:description" content="${htmlEscape(description)}" />
+    <meta property="og:url" content="${htmlEscape(pageUrl)}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${htmlEscape(title)}" />
+    <meta name="twitter:description" content="${htmlEscape(description)}" />
+    <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 32px 16px; color: #0f172a; background: #f8fafc; }
+      .wrap { max-width: 820px; margin: 0 auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; }
+      h1 { margin: 0 0 10px; font-size: 1.85rem; line-height: 1.2; }
+      .meta { color: #475569; margin-bottom: 18px; }
+      .apply { display: inline-block; margin-top: 12px; background: #0f172a; color: #fff; text-decoration: none; padding: 12px 18px; border-radius: 10px; font-weight: 600; }
+      .small { color: #64748b; margin-top: 16px; font-size: 0.92rem; }
+      .crumb { margin-bottom: 12px; font-size: 0.92rem; }
+      .crumb a { color: #2563eb; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <div class="crumb"><a href="https://seekremotejobs.com">SeekRemoteJobs</a> / Job</div>
+      <h1>${htmlEscape(job.title)}</h1>
+      <p class="meta"><strong>${htmlEscape(job.company)}</strong> · ${htmlEscape(job.location || "Remote")} · Updated ${htmlEscape(lastmod)}</p>
+      <p>${htmlEscape(description)}</p>
+      <a class="apply" href="${htmlEscape(applyUrl)}" rel="nofollow sponsored noopener noreferrer" target="_blank">Apply on official site</a>
+      <p class="small">Source: ${htmlEscape(job.sourceLabel || "Company careers page")}</p>
+    </main>
+  </body>
+</html>`;
+
+    res.type("text/html").send(html);
+  } catch (err) {
+    console.error("GET /jobs/:id error:", err);
+    res.status(500).type("text/plain").send("Failed to load job page");
+  }
 });
 
 app.get("/api/sources", (_req, res) => {
@@ -236,8 +327,8 @@ Sitemap: https://seekremotejobs.com/sitemap-jobs.xml`);
 // SEO: Sitemap index (recommended entrypoint)
 app.get("/sitemap.xml", async (_req, res) => {
   const allJobs = await getAllJobs();
-  const jobsWithUrl = allJobs.filter((job) => Boolean(job.url));
-  const pageCount = Math.max(1, Math.ceil(jobsWithUrl.length / SITEMAP_JOB_PAGE_SIZE));
+  const jobsWithId = allJobs.filter((job) => Boolean(job.id));
+  const pageCount = Math.max(1, Math.ceil(jobsWithId.length / SITEMAP_JOB_PAGE_SIZE));
   const today = toDateOnly(new Date());
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>

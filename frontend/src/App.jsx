@@ -655,6 +655,47 @@ export default function App() {
     return () => clearTimeout(t);
   }, [titleFilter]);
 
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (titleFilter) params.set("title", titleFilter);
+    if (companyFilter) params.set("company", companyFilter);
+    if (locationFilter) params.set("location", locationFilter);
+    if (daysAgoFilter) params.set("daysAgo", daysAgoFilter);
+    if (sortBy && sortBy !== "mixed") params.set("sort", sortBy);
+
+    const query = params.toString();
+    const canonicalUrl = `https://seekremotejobs.com${query ? `?${query}` : ""}`;
+    const titleParts = [];
+    if (titleFilter) titleParts.push(`${titleFilter} remote jobs`);
+    if (companyFilter) titleParts.push(`${companyFilter} hiring`);
+    if (locationFilter) titleParts.push(locationFilter);
+
+    const dynamicTitle = titleParts.length
+      ? `${titleParts.join(" | ")} | SeekRemoteJobs`
+      : "Remote Jobs Board | 100+ Companies Hiring Now | SeekRemoteJobs";
+
+    const dynamicDescription = titleParts.length
+      ? `Browse ${titleParts.join(", ")} on SeekRemoteJobs. Updated daily with verified remote roles from top companies.`
+      : "Discover fresh remote jobs from 100+ top companies across engineering, product, design, marketing, and data. Updated daily, free to use, and direct apply.";
+
+    document.title = dynamicTitle;
+
+    const descriptionMeta = document.querySelector('meta[name="description"]');
+    if (descriptionMeta) descriptionMeta.setAttribute("content", dynamicDescription);
+
+    const canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (canonicalLink) canonicalLink.setAttribute("href", canonicalUrl);
+
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute("content", canonicalUrl);
+
+    const twitterUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twitterUrl) twitterUrl.setAttribute("content", canonicalUrl);
+
+    const newUrl = `${window.location.pathname}${query ? `?${query}` : ""}`;
+    window.history.replaceState({}, "", newUrl);
+  }, [titleFilter, companyFilter, locationFilter, daysAgoFilter, sortBy]);
+
   function clearAllFilters() {
     setCompanyFilter("");
     setTitleFilter("");
