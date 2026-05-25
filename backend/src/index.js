@@ -350,9 +350,10 @@ function buildJobSitemapXml(jobs, pageNumber) {
 `;
 
   pageJobs.forEach((job) => {
-    if (!job.url) return;
+    if (!job.id) return;
     const lastmod = toDateOnly(job.updatedAt);
-    const safeUrl = xmlEscape(job.url);
+    // Sitemap URLs must remain on the same host as the sitemap file.
+    const safeUrl = xmlEscape(`https://seekremotejobs.com/jobs/${encodeURIComponent(job.id)}`);
     xml += `  <url>
     <loc>${safeUrl}</loc>
     <lastmod>${lastmod}</lastmod>
@@ -369,7 +370,7 @@ function buildJobSitemapXml(jobs, pageNumber) {
 // SEO: Job Listings Sitemap
 app.get("/sitemap-jobs.xml", async (_req, res) => {
   try {
-    const allJobs = (await getAllJobs()).filter((job) => Boolean(job.url));
+    const allJobs = (await getAllJobs()).filter((job) => Boolean(job.id));
     const xml = buildJobSitemapXml(allJobs, 1);
     res.type("application/xml");
     res.send(xml);
@@ -382,7 +383,7 @@ app.get("/sitemap-jobs.xml", async (_req, res) => {
 app.get("/sitemap-jobs-:page.xml", async (req, res) => {
   try {
     const page = Math.max(parseInt(req.params.page || "1", 10), 1);
-    const allJobs = (await getAllJobs()).filter((job) => Boolean(job.url));
+    const allJobs = (await getAllJobs()).filter((job) => Boolean(job.id));
     const maxPage = Math.max(1, Math.ceil(allJobs.length / SITEMAP_JOB_PAGE_SIZE));
 
     if (page > maxPage) {
