@@ -114,7 +114,7 @@ const ADSENSE_SLOTS = {
 };
 const CONSENT_STORAGE_KEY = "srj_consent_v1";
 const DEFAULT_CONSENT = {
-  ad_storage: false,
+  ad_storage: true,
   analytics_storage: false,
   ad_user_data: false,
   ad_personalization: false,
