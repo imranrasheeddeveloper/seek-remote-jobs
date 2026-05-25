@@ -28,6 +28,23 @@ const AUTO_REFRESH_ENABLED = process.env.AUTO_REFRESH_ENABLED !== "false";
 const ADMIN_REFRESH_TOKEN = process.env.ADMIN_REFRESH_TOKEN || "";
 
 let refreshInProgress = false;
+const SITEMAP_JOB_PAGE_SIZE = 5000;
+
+function xmlEscape(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function toDateOnly(value) {
+  if (!value) return new Date().toISOString().split("T")[0];
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return new Date().toISOString().split("T")[0];
+  return d.toISOString().split("T")[0];
+}
 
 app.use(cors());
 app.use(express.json());
@@ -216,10 +233,43 @@ Sitemap: https://seekremotejobs.com/sitemap.xml
 Sitemap: https://seekremotejobs.com/sitemap-jobs.xml`);
 });
 
-// SEO: Main Sitemap (key pages and filters)
+// SEO: Sitemap index (recommended entrypoint)
 app.get("/sitemap.xml", async (_req, res) => {
+  const allJobs = await getAllJobs();
+  const jobsWithUrl = allJobs.filter((job) => Boolean(job.url));
+  const pageCount = Math.max(1, Math.ceil(jobsWithUrl.length / SITEMAP_JOB_PAGE_SIZE));
+  const today = toDateOnly(new Date());
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://seekremotejobs.com/sitemap-main.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://seekremotejobs.com/sitemap-jobs.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>`;
+
+  for (let page = 2; page <= pageCount; page += 1) {
+    xml += `
+  <sitemap>
+    <loc>https://seekremotejobs.com/sitemap-jobs-${page}.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>`;
+  }
+
+  xml += `
+</sitemapindex>`;
+
+  res.type("application/xml");
+  res.send(xml);
+});
+
+// SEO: Main Sitemap (key pages and filters)
+app.get("/sitemap-main.xml", async (_req, res) => {
   const companies = await getCompanies();
-  const today = new Date().toISOString().split("T")[0];
+  const today = toDateOnly(new Date());
   const jobRoles = ["engineering", "design", "product", "marketing", "data", "devops"];
   const locations = ["Remote", "US", "Europe", "Worldwide"];
 
@@ -290,35 +340,62 @@ app.get("/sitemap.xml", async (_req, res) => {
   res.send(xml);
 });
 
-// SEO: Job Listings Sitemap
-app.get("/sitemap-jobs.xml", async (_req, res) => {
-  try {
-    const allJobs = await getAllJobs();
-    const today = new Date().toISOString().split("T")[0];
-    
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+function buildJobSitemapXml(jobs, pageNumber) {
+  const start = (pageNumber - 1) * SITEMAP_JOB_PAGE_SIZE;
+  const end = start + SITEMAP_JOB_PAGE_SIZE;
+  const pageJobs = jobs.slice(start, end);
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 `;
 
-    allJobs.slice(0, 5000).forEach((job) => {
-      if (!job.url) return; // Skip jobs without URLs
-      const lastmod = ((job.updatedAt instanceof Date ? job.updatedAt.toISOString() : job.updatedAt) || new Date().toISOString()).split("T")[0];
-      const safeUrl = (job.url || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      xml += `  <url>
+  pageJobs.forEach((job) => {
+    if (!job.url) return;
+    const lastmod = toDateOnly(job.updatedAt);
+    const safeUrl = xmlEscape(job.url);
+    xml += `  <url>
     <loc>${safeUrl}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
 `;
-    });
+  });
 
-    xml += `</urlset>`;
+  xml += `</urlset>`;
+  return xml;
+}
+
+// SEO: Job Listings Sitemap
+app.get("/sitemap-jobs.xml", async (_req, res) => {
+  try {
+    const allJobs = (await getAllJobs()).filter((job) => Boolean(job.url));
+    const xml = buildJobSitemapXml(allJobs, 1);
     res.type("application/xml");
     res.send(xml);
   } catch (err) {
     console.error("Sitemap jobs error:", err);
     res.status(500).send("Error generating job listings sitemap");
+  }
+});
+
+app.get("/sitemap-jobs-:page.xml", async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.params.page || "1", 10), 1);
+    const allJobs = (await getAllJobs()).filter((job) => Boolean(job.url));
+    const maxPage = Math.max(1, Math.ceil(allJobs.length / SITEMAP_JOB_PAGE_SIZE));
+
+    if (page > maxPage) {
+      res.status(404).type("text/plain").send("Sitemap page not found");
+      return;
+    }
+
+    const xml = buildJobSitemapXml(allJobs, page);
+    res.type("application/xml");
+    res.send(xml);
+  } catch (err) {
+    console.error("Sitemap jobs page error:", err);
+    res.status(500).send("Error generating paginated job sitemap");
   }
 });
 
