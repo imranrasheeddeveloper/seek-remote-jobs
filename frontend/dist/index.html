@@ -1,14 +1,41 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1140863366083907" crossorigin="anonymous"></script>
+    <script>
+      window.adsbygoogle = window.adsbygoogle || [];
+      window.adsbygoogle.push({
+        google_ad_client: "ca-pub-1140863366083907",
+        enable_page_level_ads: true
+      });
+    </script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM7G02CQ0X"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('consent', 'default', {
+        ad_storage: 'granted',
+        analytics_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        wait_for_update: 500
+      });
+      gtag('config', 'G-WM7G02CQ0X');
+    </script>
+
     <!-- Essential Meta Tags -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="google-adsense-account" content="ca-pub-1140863366083907" />
 
     <!-- Primary SEO — Remote Jobs Focus -->
-    <title>Seek Remote Jobs | Work From Anywhere at Top Tech Companies</title>
-    <meta name="description" content="SeekRemoteJobs helps you find remote jobs from 40+ top tech companies including engineering, product, design, marketing, and data roles. Updated daily and free to use." />
+    <title>Remote Jobs Board | 100+ Companies Hiring Now | SeekRemoteJobs</title>
+    <meta name="description" content="Discover fresh remote jobs from 100+ top companies across engineering, product, design, marketing, and data. Updated daily, free to use, and direct apply." />
     <meta name="keywords" content="remote jobs, work from home jobs, remote software engineer jobs, remote tech jobs, remote developer jobs, remote designer jobs, remote product manager jobs, work from anywhere, distributed teams, fully remote companies, Stripe remote jobs, GitHub remote jobs, Figma remote jobs, Airbnb remote jobs, remote first companies" />
 
     <!-- Open Graph -->
@@ -17,13 +44,16 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://seekremotejobs.com" />
     <meta property="og:image" content="https://seekremotejobs.com/og-image.png" />
+    <meta property="og:image:alt" content="SeekRemoteJobs remote jobs board" />
     <meta property="og:site_name" content="SeekRemoteJobs" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Seek Remote Jobs | Work From Anywhere" />
     <meta name="twitter:description" content="Find remote jobs from top tech companies. Updated daily and free to use." />
     <meta name="twitter:image" content="https://seekremotejobs.com/og-image.png" />
+    <meta name="twitter:url" content="https://seekremotejobs.com" />
 
     <!-- Additional SEO -->
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
@@ -33,6 +63,8 @@
     <meta name="geo.region" content="US" />
     <meta name="geo.placename" content="Worldwide" />
     <link rel="canonical" href="https://seekremotejobs.com" />
+    <link rel="alternate" hreflang="en" href="https://seekremotejobs.com" />
+    <link rel="alternate" hreflang="x-default" href="https://seekremotejobs.com" />
     
     <!-- Performance & Mobile Optimization -->
     <meta name="theme-color" content="#4f46e5" />
@@ -56,9 +88,26 @@
         "@type": "SearchAction",
         "target": {
           "@type": "EntryPoint",
-          "urlTemplate": "https://seekremotejobs.com?q={search_term_string}"
+          "urlTemplate": "https://seekremotejobs.com?title={search_term_string}"
         },
         "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- JSON-LD: WebPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "SeekRemoteJobs - Remote Jobs Board",
+      "url": "https://seekremotejobs.com",
+      "description": "Find remote jobs from top companies across engineering, product, design, marketing, and data.",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "SeekRemoteJobs",
+        "url": "https://seekremotejobs.com"
       }
     }
     </script>
@@ -162,10 +211,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
+    <!-- DNS Prefetch for External Resources -->
+    <link rel="dns-prefetch" href="https://logo.clearbit.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    
+    <!-- Preconnect for Critical Resources -->
+    <link rel="preconnect" href="https://api.github.com" />
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <script type="module" crossorigin src="/assets/index-Cmknv259.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CdxiZwkV.css">
+    <script type="module" crossorigin src="/assets/index-DvlzTNrY.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DEaGmKA5.css">
   </head>
   <body>
     <div id="root"></div>

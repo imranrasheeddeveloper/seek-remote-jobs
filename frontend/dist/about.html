@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About SeekRemoteJobs — Remote Job Aggregator</title>
+  <meta name="description" content="Learn about SeekRemoteJobs — a free remote job board that aggregates verified listings daily from top company career pages. No accounts, no middlemen." />
+  <link rel="canonical" href="https://seekremotejobs.com/about.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      line-height: 1.7;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #4f46e5; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .navbar {
+      background: #0f0c29;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.15rem;
+      text-decoration: none;
+    }
+    .logo-accent { color: #818cf8; }
+    .nav-home { color: #94a3b8; font-size: 0.9rem; }
+    .nav-home:hover { color: #fff; }
+
+    /* Hero band */
+    .about-hero {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      padding: 4rem 1.5rem;
+      text-align: center;
+    }
+    .about-hero .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.1);
+      color: #c7d2fe;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      margin-bottom: 1.25rem;
+    }
+    .about-hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 900;
+      margin: 0 0 1rem;
+      line-height: 1.2;
+    }
+    .about-hero h1 span { color: #818cf8; }
+    .about-hero p {
+      font-size: 1.1rem;
+      color: #cbd5e1;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* Page content */
+    .page-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    .section-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #4f46e5;
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 1rem;
+    }
+    p { margin: 0 0 1rem; }
+
+    /* Story section */
+    .story-section { margin-bottom: 3.5rem; }
+    .story-section p { font-size: 1.05rem; color: #334155; }
+
+    /* Values grid */
+    .values-section { margin-bottom: 3.5rem; }
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+    .value-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+    .value-icon {
+      font-size: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .value-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 0.4rem;
+    }
+    .value-card p {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin: 0;
+    }
+
+    /* How it works */
+    .how-section { margin-bottom: 3.5rem; }
+    .steps { display: grid; gap: 1rem; margin-top: 1.5rem; }
+    .step {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+    }
+    .step-num {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #c7d2fe;
+      min-width: 2.5rem;
+    }
+    .step h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 0.3rem;
+    }
+    .step p { font-size: 0.9rem; color: #64748b; margin: 0; }
+
+    /* CTA */
+    .about-cta {
+      background: linear-gradient(135deg, #4f46e5, #0284c7);
+      border-radius: 18px;
+      padding: 2.5rem;
+      text-align: center;
+      color: #fff;
+      margin-bottom: 3rem;
+    }
+    .about-cta h2 { color: #fff; font-size: 1.5rem; margin-bottom: 0.75rem; }
+    .about-cta p { color: #c7d2fe; margin-bottom: 1.25rem; }
+    .about-cta a {
+      display: inline-block;
+      background: #fff;
+      color: #4f46e5;
+      font-weight: 700;
+      padding: 0.75rem 1.75rem;
+      border-radius: 9999px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .about-cta a:hover { opacity: 0.9; }
+
+    /* Footer */
+    .page-footer {
+      background: #0f172a;
+      color: #94a3b8;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.875rem;
+    }
+    .page-footer a { color: #818cf8; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 24 24" fill="none" width="28" height="28" aria-hidden="true">
+      <rect x="2.5" y="2.5" width="19" height="19" rx="5" fill="url(#bg)"/>
+      <path d="M8 15.5l3-3 2 2 3.5-3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M14.5 8H18v3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs><linearGradient id="bg" x1="3" y1="3" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="#4f46e5"/><stop offset="1" stop-color="#0284c7"/></linearGradient></defs>
+    </svg>
+    SeekRemote<span class="logo-accent">Jobs</span>
+  </a>
+  <a href="/" class="nav-home">← Back to job board</a>
+</nav>
+
+<section class="about-hero">
+  <span class="badge">About us</span>
+  <h1>We help people find <span>remote work</span> faster</h1>
+  <p>SeekRemoteJobs aggregates verified remote job listings from hundreds of company career pages — free, daily, and without requiring a sign-up.</p>
+</section>
+
+<main class="page-wrap">
+
+  <!-- Our Story -->
+  <section class="story-section">
+    <div class="section-label">Our story</div>
+    <h2>Why we built SeekRemoteJobs</h2>
+    <p>Finding a legitimate remote job is harder than it should be. Most job boards are cluttered with stale listings, duplicate postings, and positions that were never truly remote to begin with. Recruiters gate the best roles behind sign-up walls, and aggregators charge employers to appear at the top, distorting what you see.</p>
+    <p>We built SeekRemoteJobs to be different: a fast, focused tool that goes directly to the source. Our crawlers visit the official careers pages of vetted companies every day and surface only their current open roles. No employer payments for placement. No user accounts required. No monetisation of your personal data. Just a clean interface between you and the companies that are actually hiring.</p>
+    <p>Remote work has transformed how knowledge workers live and build careers. We believe the infrastructure for finding remote jobs should be equally open and transparent — and that's what we're building.</p>
+  </section>
+
+  <!-- Values -->
+  <section class="values-section">
+    <div class="section-label">What we stand for</div>
+    <h2>Our values</h2>
+    <div class="values-grid">
+      <div class="value-card">
+        <div class="value-icon">🔗</div>
+        <h3>Transparency</h3>
+        <p>Every listing links directly to the employer. No aggregation fees, no mystery sources, no paid placement.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">⚡</div>
+        <h3>Speed</h3>
+        <p>Jobs are refreshed daily. We prioritise recency so you see openings before they fill — not weeks after they close.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">🌍</div>
+        <h3>Accessibility</h3>
+        <p>Free forever, no sign-up, no paywall. Remote opportunity should be accessible to anyone with a browser.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">✅</div>
+        <h3>Quality</h3>
+        <p>Sources are verified manually. Spam boards, low-quality aggregators, and unconfirmed companies are excluded.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="how-section">
+    <div class="section-label">Under the hood</div>
+    <h2>How SeekRemoteJobs works</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">01</span>
+        <div>
+          <h3>We identify verified company career pages</h3>
+          <p>Our team manually vets each company and career page source before adding it to our crawler list. We focus on technology, software, and knowledge-work companies with established remote hiring practices.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <div>
+          <h3>Automated crawlers run every day</h3>
+          <p>Daily crawl jobs visit each career page, extract current job listings, normalise the data (title, location, date, apply URL), and insert new roles into our database while removing postings that have been taken down.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <div>
+          <h3>You search, filter, and apply directly</h3>
+          <p>The site gives you fast filtering by keyword, company, location, and recency. Every "Apply Now" link takes you straight to the employer's official posting — not a proxy or tracking redirect.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">04</span>
+        <div>
+          <h3>The service stays free via advertising</h3>
+          <p>Non-intrusive display ads (served by Google AdSense) keep the platform free for job seekers. We do not charge companies for listings, sell your data, or accept paid placement requests.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="about-cta">
+    <h2>Ready to find your next remote role?</h2>
+    <p>Browse hundreds of verified remote listings from top companies — updated daily, completely free.</p>
+    <a href="/">Browse Remote Jobs →</a>
+  </div>
+
+</main>
+
+<footer class="page-footer">
+  <p>© 2026 SeekRemoteJobs &nbsp;|&nbsp; <a href="/">Job Board</a> &nbsp;|&nbsp; <a href="/about.html">About</a> &nbsp;|&nbsp; <a href="/privacy.html">Privacy Policy</a> &nbsp;|&nbsp; <a href="/terms.html">Terms of Service</a> &nbsp;|&nbsp; <a href="mailto:hello@seekremotejobs.com">Contact</a></p>
+</footer>
+
+</body>
+</html>

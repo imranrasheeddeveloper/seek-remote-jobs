@@ -170,19 +170,36 @@ async function api(path, options = {}) {
 }
 
 const JOB_CATEGORIES = [
-  { label: "All Roles", value: "" },
-  { label: "Engineering", value: "engineer" },
-  { label: "Design", value: "design" },
-  { label: "Product", value: "product" },
-  { label: "Marketing", value: "marketing" },
-  { label: "Data / ML", value: "data" },
-  { label: "DevOps", value: "devops" },
-  { label: "Sales", value: "sales" },
-  { label: "Operations", value: "operations" },
+  { label: "All Roles",        value: "" },
+  // Developer specialisms
+  { label: "Full Stack",       value: "full stack" },
+  { label: "Frontend",         value: "frontend" },
+  { label: "Backend",          value: "backend" },
+  { label: "Python",           value: "python" },
+  { label: "React / Next.js",  value: "react" },
+  { label: "Node.js",          value: "node" },
+  { label: "Mobile",           value: "mobile" },
+  { label: "iOS",              value: "ios" },
+  { label: "Android",          value: "android" },
+  // Broader tech
+  { label: "Engineering",      value: "engineer" },
+  { label: "AI / ML",          value: "machine learning" },
+  { label: "Data",             value: "data" },
+  { label: "DevOps / SRE",     value: "devops" },
+  { label: "Cloud",            value: "cloud" },
+  { label: "Security",         value: "security" },
+  { label: "QA / Testing",     value: "qa" },
+  // Other
+  { label: "Design",           value: "design" },
+  { label: "Product",          value: "product" },
+  { label: "Marketing",        value: "marketing" },
+  { label: "Sales",            value: "sales" },
+  { label: "Operations",       value: "operations" },
 ];
 
 const COMPANIES_SHOWCASE = [
-  "Stripe", "GitHub", "Figma", "Airbnb", "Slack", "Shopify", "Notion", "Linear",
+  "Stripe", "GitHub", "Figma", "Shopify", "Notion", "Linear",
+  "Anthropic", "OpenAI", "Vercel", "Cloudflare", "MongoDB", "Datadog",
 ];
 
 function BrandMark() {
@@ -768,6 +785,7 @@ export default function App() {
             <a href="#jobs" className="nav-link" onClick={(e) => { e.preventDefault(); scrollToJobs(); }}>Browse Jobs</a>
             <a href="#how-it-works" className="nav-link">How It Works</a>
             <a href="#why-remote" className="nav-link">Why Remote</a>
+            <a href="#guide" className="nav-link">Career Guide</a>
           </nav>
           <button className="btn-refresh-nav" onClick={refreshJobs} disabled={loading}>
             <span className={loading ? "spin" : ""}><Icons.RefreshCw /></span>
@@ -839,7 +857,7 @@ export default function App() {
             <div className="hsr-sep" />
             <div className="hsr-item"><span className="hsr-num">Free</span><span className="hsr-lbl">Always</span></div>
           </div>
-          {ADSENSE_SLOTS.hero && (
+          {ADSENSE_SLOTS.hero && !loading && jobs.length > 0 && (
             <div className="hero-ad-wrap">
               <AdSenseAd slot={ADSENSE_SLOTS.hero} format="horizontal" style={{ minHeight: 90 }} />
             </div>
@@ -1049,6 +1067,42 @@ export default function App() {
         </div>
       </section>
 
+      {/* REMOTE WORK STATISTICS */}
+      <section className="stats-section" aria-labelledby="stats-heading">
+        <div className="section-wrap">
+          <div className="sec-label">Remote work today</div>
+          <h2 className="sec-heading" id="stats-heading">Remote Work by the Numbers</h2>
+          <p className="sec-sub">The shift to remote and distributed work is no longer a trend — it is the new standard for top technology companies worldwide.</p>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <span className="stat-num">32%</span>
+              <span className="stat-lbl">of all US knowledge-worker jobs are now fully remote, up from 5% in 2019</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-num">$19K</span>
+              <span className="stat-lbl">average annual savings for companies per full-time remote employee in office costs</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-num">77%</span>
+              <span className="stat-lbl">of remote workers report equal or greater productivity compared to working in an office</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-num">54%</span>
+              <span className="stat-lbl">of workers would change jobs for a fully remote role, even without a pay increase</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-num">16%</span>
+              <span className="stat-lbl">of companies worldwide now operate as fully remote organisations with no physical office</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-num">$5K+</span>
+              <span className="stat-lbl">annual savings for remote workers on commuting, clothing, and food costs on average</span>
+            </div>
+          </div>
+          <p className="stats-source">Sources: Owl Labs State of Remote Work, Buffer State of Remote Work, Global Workplace Analytics, McKinsey Global Institute.</p>
+        </div>
+      </section>
+
       {/* WHY REMOTE */}
       <section className="why-section" id="why-remote">
         <div className="section-wrap">
@@ -1074,6 +1128,102 @@ export default function App() {
         </div>
       </section>
 
+      {/* REMOTE WORK GUIDE */}
+      <section className="guide-section" id="guide" aria-labelledby="guide-heading">
+        <div className="section-wrap">
+          <div className="sec-label">Career resources</div>
+          <h2 className="sec-heading" id="guide-heading">The Complete Remote Job Seeker's Guide</h2>
+          <p className="sec-sub">Landing a remote job takes more than a great resume. Use this guide to stand out in a competitive, distributed hiring market.</p>
+
+          <div className="guide-grid">
+            <article className="guide-card">
+              <div className="guide-icon-wrap" aria-hidden="true"><Icons.Briefcase /></div>
+              <h3>How to Write a Remote-Ready Resume</h3>
+              <p>A remote-optimised resume highlights self-management, async communication, and measurable results. Unlike traditional resumes that focus on in-office duties, yours should show employers you can deliver independently.</p>
+              <ul className="guide-list">
+                <li>Add a "Remote Work" tag or note to any past remote or hybrid roles</li>
+                <li>Highlight tools you have used: Slack, Notion, Jira, Figma, GitHub, Zoom</li>
+                <li>Quantify achievements — numbers and outcomes matter more than duties</li>
+                <li>Include a strong summary that mentions your timezone and availability</li>
+                <li>Show evidence of written communication: documentation, async updates, reports</li>
+              </ul>
+            </article>
+
+            <article className="guide-card">
+              <div className="guide-icon-wrap" aria-hidden="true"><Icons.Wifi /></div>
+              <h3>Acing the Remote Job Interview</h3>
+              <p>Remote interviews are evaluated differently from in-person ones. Employers are watching not only for technical skills but also for communication clarity, presence, and setup — because those things predict how you will work day-to-day.</p>
+              <ul className="guide-list">
+                <li>Test your camera, microphone, and internet speed the day before</li>
+                <li>Choose a clean, well-lit background — virtual backgrounds can look unprofessional</li>
+                <li>Speak clearly and pause briefly to avoid talking over others on video calls</li>
+                <li>Prepare examples of projects you completed while working autonomously</li>
+                <li>Ask thoughtful questions about how the team communicates asynchronously</li>
+                <li>Follow up with a written thank-you note that restates your key qualifications</li>
+              </ul>
+            </article>
+
+            <article className="guide-card">
+              <div className="guide-icon-wrap" aria-hidden="true"><Icons.Zap /></div>
+              <h3>Essential Tools for Remote Workers</h3>
+              <p>Mastering the right tools is one of the fastest ways to become a high-performing remote employee. Familiarity with widely-used platforms signals to employers that you can integrate into distributed teams without a steep learning curve.</p>
+              <ul className="guide-list">
+                <li><strong>Communication:</strong> Slack, Microsoft Teams, Discord</li>
+                <li><strong>Video calls:</strong> Zoom, Google Meet, Around</li>
+                <li><strong>Project management:</strong> Notion, Linear, Jira, Asana, Trello</li>
+                <li><strong>Documentation:</strong> Confluence, Notion, Google Docs</li>
+                <li><strong>Version control:</strong> GitHub, GitLab, Bitbucket</li>
+                <li><strong>Design collaboration:</strong> Figma, Miro, Whimsical</li>
+                <li><strong>Time management:</strong> Toggl, Clockify, RescueTime</li>
+              </ul>
+            </article>
+
+            <article className="guide-card">
+              <div className="guide-icon-wrap" aria-hidden="true"><Icons.DollarSign /></div>
+              <h3>Remote Job Salary Expectations</h3>
+              <p>Remote roles vary widely in compensation depending on the company, role seniority, location, and whether the employer offers location-based or global pay scales. Understanding the landscape helps you negotiate effectively.</p>
+              <ul className="guide-list">
+                <li><strong>Software Engineer (mid-level):</strong> $90K–$160K USD (US-based remote)</li>
+                <li><strong>Product Manager:</strong> $110K–$180K USD depending on company stage</li>
+                <li><strong>UX/Product Designer:</strong> $80K–$140K USD for senior roles</li>
+                <li><strong>Data Scientist / ML Engineer:</strong> $110K–$200K USD at top companies</li>
+                <li><strong>Marketing Manager:</strong> $70K–$130K USD at growth-stage companies</li>
+                <li>Global / international remote roles may pay in local cost-of-living bands</li>
+                <li>Always research Levels.fyi, Glassdoor, and Blind for the latest data</li>
+              </ul>
+            </article>
+
+            <article className="guide-card">
+              <div className="guide-icon-wrap" aria-hidden="true"><Icons.CheckCircle /></div>
+              <h3>Skills Remote Employers Prioritise</h3>
+              <p>Companies hiring for distributed teams screen specifically for skills that predict success in an async, low-supervision environment. Candidates who demonstrate these competencies are consistently prioritised over those who do not.</p>
+              <ul className="guide-list">
+                <li><strong>Written communication:</strong> The ability to write clearly and concisely is critical in async teams</li>
+                <li><strong>Self-direction:</strong> Managing your own priorities without constant check-ins</li>
+                <li><strong>Over-communication:</strong> Proactively sharing progress, blockers, and decisions</li>
+                <li><strong>Documentation habit:</strong> Writing things down so teammates in other timezones stay aligned</li>
+                <li><strong>Results orientation:</strong> Defining success by outcomes, not hours logged</li>
+                <li><strong>Timezone awareness:</strong> Scheduling consideration and flexibility for global teams</li>
+              </ul>
+            </article>
+
+            <article className="guide-card">
+              <div className="guide-icon-wrap" aria-hidden="true"><Icons.TrendingUp /></div>
+              <h3>How to Avoid Remote Job Scams</h3>
+              <p>The rise of remote work has unfortunately also increased the prevalence of fraudulent job postings. Knowing the warning signs protects your time and personal information.</p>
+              <ul className="guide-list">
+                <li>Legitimate employers never ask for payment, equipment deposits, or banking details</li>
+                <li>Be sceptical of offers with unusually high salaries for vague or entry-level roles</li>
+                <li>Verify the company exists via LinkedIn, Crunchbase, and their official website</li>
+                <li>All listings on SeekRemoteJobs link directly to official company career pages</li>
+                <li>If an offer arrives unsolicited via WhatsApp or Telegram, treat it as suspicious</li>
+                <li>Check if the email domain matches the company — recruiters@real-company.com, not gmail</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* CTA BAND */}
       <section className="cta-band">
         <div className="cta-inner">
@@ -1092,23 +1242,43 @@ export default function App() {
           <div className="faq-list">
             <details className="faq-item">
               <summary>Where can I find remote tech jobs?</summary>
-              <p>SeekRemoteJobs aggregates remote roles from top company career pages, so you can browse fresh openings in one place.</p>
+              <p>SeekRemoteJobs aggregates remote roles directly from company career pages, so every listing links straight to the employer. We cover roles across engineering, product, design, marketing, data, DevOps, and sales. You can filter by keyword, company name, location region, and how recently the job was posted. New jobs are pulled daily, so checking back regularly ensures you see the freshest openings before they fill.</p>
             </details>
             <details className="faq-item">
               <summary>Are these jobs fully remote?</summary>
-              <p>Most listings are remote-first. You can also see hybrid and onsite listings when companies publish those roles.</p>
+              <p>The majority of listings are remote-first or fully distributed. We tag each role with a work-type badge — Remote, Hybrid, or Onsite — based on the information published by the company. If a role says "Worldwide" or "Anywhere," it means the employer explicitly accepts applicants from any country. Some companies list hybrid roles (a mix of remote and in-office days) alongside their remote openings. We include those because many job seekers are open to both, but you can filter by keyword to focus on fully-remote listings.</p>
             </details>
             <details className="faq-item">
               <summary>Is SeekRemoteJobs free to use?</summary>
-              <p>Yes. It is completely free for job seekers, with direct links to official company application pages.</p>
+              <p>Yes — completely free for job seekers. There are no accounts, no paywalls, and no premium tiers. We link you directly to the company's official careers page so you apply there, not through us. The site is supported by non-intrusive display advertising, which keeps the service free for everyone. We never charge companies to list their roles and never accept paid placement, so what you see is a real-time reflection of actual open positions.</p>
             </details>
             <details className="faq-item">
               <summary>How often are jobs updated?</summary>
-              <p>Jobs are refreshed daily from supported sources, and stale postings are removed over time.</p>
+              <p>Our crawlers run daily to pull new job listings and remove postings that companies have taken down or filled. You can also trigger a manual refresh using the "Refresh Jobs" button to fetch the very latest data from all sources. The "Last updated" timestamp in the footer shows when the most recent crawl ran. If you notice a listing that appears to be closed, the company's careers page is always the authoritative source.</p>
             </details>
             <details className="faq-item">
               <summary>Can I filter by role and location?</summary>
-              <p>Yes. Use filters for title, company, location, posted date, and sort order to narrow results quickly.</p>
+              <p>Yes. Use the search bar to filter by job title or keyword, type a company name to see all their open roles, and use the location dropdown to narrow by country or region. You can also filter by date posted — last 24 hours, last 7 days, last 2 weeks, or last 30 days. Category pills let you jump straight to Engineering, Design, Product, Marketing, Data, DevOps, Sales, or Operations roles. All filters can be combined and cleared with a single click.</p>
+            </details>
+            <details className="faq-item">
+              <summary>What skills do remote employers look for?</summary>
+              <p>Beyond the technical requirements of each role, companies hiring for remote positions consistently screen for: strong written communication (because most collaboration happens asynchronously via Slack, email, and documentation), self-management and the ability to set your own priorities, comfort with project management tools like Notion, Linear, or Jira, and the discipline to work independently without constant supervision. Demonstrating these skills in your resume and interview answers significantly increases your chances of advancing in remote hiring processes.</p>
+            </details>
+            <details className="faq-item">
+              <summary>How do I stand out in a remote job application?</summary>
+              <p>Tailor your resume to highlight remote-specific experience: mention tools you've used, note any past remote or distributed team roles, and quantify your impact with numbers. Write a focused cover letter that explains why you thrive in async environments and gives a concrete example of a project you managed independently. During interviews, prepare answers that show self-direction, clear communication, and timezone consideration. Following up after an interview with a well-written message is especially impactful in remote hiring because it directly demonstrates your written communication skills.</p>
+            </details>
+            <details className="faq-item">
+              <summary>What are the best remote-friendly companies?</summary>
+              <p>Many of the world's top technology companies have adopted remote-first or fully-distributed models. Notable examples include GitLab (fully remote since founding), Automattic (makers of WordPress, fully distributed), Basecamp, Buffer, Zapier, and Doist. Large companies like Stripe, Shopify, GitHub, Figma, and Notion offer significant remote options and regularly post remote roles. You can browse jobs from any of these companies by typing their name into the company filter on SeekRemoteJobs. Companies are added as new career page sources are verified.</p>
+            </details>
+            <details className="faq-item">
+              <summary>Can I apply to jobs outside my home country?</summary>
+              <p>Many remote roles are open to international applicants, especially at companies that explicitly say "Worldwide," "Global Remote," or "Anywhere." However, some companies hire remotely only within certain countries or regions due to legal, payroll, or tax constraints. Always check the full job description on the company's careers page before applying — the location requirements are usually stated clearly. Some companies work with Employer of Record (EOR) services like Deel or Remote.com, which allow them to hire internationally without setting up a local entity.</p>
+            </details>
+            <details className="faq-item">
+              <summary>How do I avoid scams when applying for remote jobs?</summary>
+              <p>Legitimate employers never ask you to pay for equipment, training, or background checks as part of the hiring process. They also never send unsolicited job offers via WhatsApp, Telegram, or personal email from free email domains. Always verify a company's existence through their official website and LinkedIn page before sharing personal information. On SeekRemoteJobs, every listing links directly to an official company careers page — we do not host user-generated listings and do not accept submissions from unverified sources, which significantly reduces the risk of fraudulent postings.</p>
             </details>
           </div>
         </div>
@@ -1120,6 +1290,31 @@ export default function App() {
           <AdSenseAd slot={ADSENSE_SLOTS.preFooter} format="horizontal" style={{ minHeight: 90 }} />
         </div>
       )}
+
+      {/* ABOUT SECTION */}
+      <section className="about-section" aria-labelledby="about-heading">
+        <div className="section-wrap">
+          <div className="about-inner">
+            <div className="about-text">
+              <div className="sec-label">About us</div>
+              <h2 className="sec-heading" id="about-heading">About SeekRemoteJobs</h2>
+              <p>SeekRemoteJobs is an independent remote job aggregator built for professionals who want to work from anywhere. We crawl the official careers pages of vetted companies daily and surface their open remote, hybrid, and distributed roles in one searchable, ad-free interface.</p>
+              <p>Unlike general job boards that rely on employer-submitted listings, every job on SeekRemoteJobs is sourced directly from a verified company career page. That means no duplicate postings, no outdated listings, and no fake opportunities — just real roles from real companies, updated every day.</p>
+              <p>We believe job seekers deserve a fast, focused, and free tool that respects their time. There are no accounts to create, no applications to submit through our platform, and no fees. We direct you straight to the employer so you can apply on your terms.</p>
+              <p>SeekRemoteJobs is free to use and sustained by non-intrusive advertising. We are constantly expanding the list of verified companies we monitor, with a focus on technology, software, and knowledge-work industries where remote roles are most prevalent.</p>
+            </div>
+            <div className="about-values">
+              <h3>Our values</h3>
+              <ul className="about-values-list">
+                <li><span className="av-icon"><Icons.CheckCircle /></span><div><strong>Transparency</strong><br />Every listing links to a real company page. No middlemen, no mystery.</div></li>
+                <li><span className="av-icon"><Icons.Zap /></span><div><strong>Speed</strong><br />Fresh jobs daily. Our crawlers run round-the-clock so you see openings fast.</div></li>
+                <li><span className="av-icon"><Icons.Globe /></span><div><strong>Accessibility</strong><br />Free, no sign-up, no paywall. Remote work should be accessible to everyone.</div></li>
+                <li><span className="av-icon"><Icons.TrendingUp /></span><div><strong>Quality</strong><br />We vet sources manually. Spam, fake listings, and unverified boards are excluded.</div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* FOOTER */}
       <footer className="footer">
@@ -1151,10 +1346,23 @@ export default function App() {
                 Privacy & Cookie Settings
               </button>
             </div>
+            <div className="footer-col">
+              <h4>Company</h4>
+              <a href="/about.html" className="footer-link-btn">About SeekRemoteJobs</a>
+              <a href="/privacy.html" className="footer-link-btn">Privacy Policy</a>
+              <a href="/terms.html" className="footer-link-btn">Terms of Service</a>
+              <a href="mailto:hello@seekremotejobs.com" className="footer-link-btn">Contact Us</a>
+            </div>
           </div>
         </div>
         <div className="footer-bottom">
           <p>© {new Date().getFullYear()} SeekRemoteJobs — <strong>{stats.totalJobs.toLocaleString()}+ remote jobs</strong> from <strong>{stats.totalCompanies}+ companies</strong>. Updated daily.</p>
+          <p className="footer-bottom-links">
+            <a href="/about.html">About</a>
+            <a href="/privacy.html">Privacy Policy</a>
+            <a href="/terms.html">Terms of Service</a>
+            <a href="mailto:hello@seekremotejobs.com">Contact</a>
+          </p>
         </div>
       </footer>
 
