@@ -1,5 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
+import { Routes, Route, Link } from "react-router-dom";
 import "./styles.css";
+import { OAuthCallback } from "./pages/OAuthCallback.jsx";
+import Login from "./pages/Login.jsx";
+import Signup from "./pages/Signup.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 
 /* ── Lucide-style inline SVG icons ── */
 const Icons = {
@@ -113,6 +118,8 @@ const ADSENSE_SLOTS = {
   preFooter: import.meta.env.VITE_ADSENSE_SLOT_PREFOOTER || "",
 };
 const CONSENT_STORAGE_KEY = "srj_consent_v1";
+const SAVED_JOBS_STORAGE_KEY = "srj_saved_jobs_v1";
+const RECENT_JOBS_STORAGE_KEY = "srj_recent_jobs_v1";
 const DEFAULT_CONSENT = {
   ad_storage: true,
   analytics_storage: false,
@@ -278,6 +285,15 @@ function isWorldwideRemote(location) {
   );
 }
 
+function copyText(value) {
+  if (!value) return false;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(value);
+    return true;
+  }
+  return false;
+}
+
 function getWorkType(location) {
   if (!location) return "remote";
   const l = location.toLowerCase();
@@ -286,7 +302,16 @@ function getWorkType(location) {
   return "remote";
 }
 
-function JobSheet({ job, onClose }) {
+function toPublicUploadPath(filePath) {
+  if (!filePath) return "";
+  const normalized = String(filePath).replace(/\\/g, "/");
+  const marker = "/uploads/";
+  const idx = normalized.lastIndexOf(marker);
+  if (idx >= 0) return normalized.slice(idx);
+  return normalized.startsWith("/") ? normalized : `/${normalized}`;
+}
+
+function JobSheet({ job, onClose, isSaved, onToggleSave, onCopyLink, onTailorResume, isTailoring }) {
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
@@ -372,6 +397,15 @@ function JobSheet({ job, onClose }) {
         </div>
 
         <div className="js-cta">
+          <button className="js-save-btn" onClick={() => onToggleSave(job.id)}>
+            {isSaved ? "★ Saved" : "☆ Save Job"}
+          </button>
+          <button className="js-share-btn" onClick={() => onCopyLink(job)}>
+            Copy Link
+          </button>
+          <button className="js-tailor-btn" onClick={() => onTailorResume(job)} disabled={isTailoring}>
+            {isTailoring ? "Tailoring..." : "AI Tailor Resume"}
+          </button>
           <a
             href={job.url}
             target="_blank"
@@ -525,7 +559,20 @@ function SearchableSelect({ options, value, onChange, placeholder = "All Locatio
 }
 
 export default function App() {
-  const [jobs, setJobs] = useState([]);
+  return (
+    <Routes>
+      <Route path="/auth/callback" element={<OAuthCallback />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/" element={<JobBoardContent />} />
+      <Route path="*" element={<JobBoardContent />} />
+    </Routes>
+  );
+}
+
+// JobBoard content component (the original App content)
+function JobBoardContent() {
   const [sources, setSources] = useState([]);
   const [stats, setStats] = useState({ totalJobs: 0, totalCompanies: 0, totalLocations: 0 });
   const [status, setStatus] = useState("Loading jobs...");
@@ -549,6 +596,15 @@ export default function App() {
   const [showConsentBanner, setShowConsentBanner] = useState(false);
   const [showConsentManage, setShowConsentManage] = useState(false);
   const [consentPrefs, setConsentPrefs] = useState(DEFAULT_CONSENT);
+  const [savedJobIds, setSavedJobIds] = useState([]);
+  const [recentJobs, setRecentJobs] = useState([]);
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
+  const [toast, setToast] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [tailoringJobId, setTailoringJobId] = useState(null);
+  const [navUser, setNavUser] = useState(null);
+  const [navDropdownOpen, setNavDropdownOpen] = useState(false);
+  const navDropdownRef = useRef(null);
 
   const jobsSectionRef = useRef(null);
 
@@ -642,6 +698,63 @@ export default function App() {
 
   useEffect(() => {
     try {
+      const userData = localStorage.getItem("user");
+      const token = localStorage.getItem("accessToken");
+      if (userData && token) setNavUser(JSON.parse(userData));
+    } catch (_) {}
+  }, []);
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (navDropdownRef.current && !navDropdownRef.current.contains(e.target)) {
+        setNavDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  function handleNavLogout() {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    setNavUser(null);
+    setNavDropdownOpen(false);
+  }
+
+  useEffect(() => {
+    try {
+      const rawSaved = localStorage.getItem(SAVED_JOBS_STORAGE_KEY);
+      const rawRecent = localStorage.getItem(RECENT_JOBS_STORAGE_KEY);
+      if (rawSaved) {
+        const parsed = JSON.parse(rawSaved);
+        if (Array.isArray(parsed)) setSavedJobIds(parsed);
+      }
+      if (rawRecent) {
+        const parsed = JSON.parse(rawRecent);
+        if (Array.isArray(parsed)) setRecentJobs(parsed);
+      }
+    } catch (error) {
+      console.warn("Could not restore saved jobs state:", error.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(SAVED_JOBS_STORAGE_KEY, JSON.stringify(savedJobIds));
+  }, [savedJobIds]);
+
+  useEffect(() => {
+    localStorage.setItem(RECENT_JOBS_STORAGE_KEY, JSON.stringify(recentJobs));
+  }, [recentJobs]);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const t = setTimeout(() => setToast(""), 1800);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  useEffect(() => {
+    try {
       const raw = localStorage.getItem(CONSENT_STORAGE_KEY);
       if (!raw) {
         applyGoogleConsent(DEFAULT_CONSENT);
@@ -720,7 +833,77 @@ export default function App() {
     setDaysAgoFilter("");
     setActiveCategory("");
     setSortBy("mixed");
+    setShowSavedOnly(false);
     setCurrentPage(1);
+  }
+
+  function toggleSaveJob(jobId) {
+    setSavedJobIds((prev) => {
+      const exists = prev.includes(jobId);
+      const next = exists ? prev.filter((id) => id !== jobId) : [jobId, ...prev];
+      setToast(exists ? "Removed from saved jobs" : "Saved to shortlist");
+      return next;
+    });
+  }
+
+  function openJob(job) {
+    setSelectedJob(job);
+    setRecentJobs((prev) => {
+      const clean = prev.filter((j) => j.id !== job.id);
+      return [job, ...clean].slice(0, 6);
+    });
+  }
+
+  function copyJobLink(job) {
+    const base = window.location.origin;
+    const shareUrl = `${base}/jobs/${encodeURIComponent(job.id)}`;
+    const copied = copyText(shareUrl);
+    if (copied) {
+      setToast("Job link copied");
+    } else {
+      setToast("Copy not supported in this browser");
+    }
+  }
+
+  async function tailorResumeForJob(job) {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setToast("Log in to tailor your resume for this role");
+      window.setTimeout(() => {
+        window.location.href = "/login";
+      }, 700);
+      return;
+    }
+
+    setTailoringJobId(job.id);
+    try {
+      const res = await fetch(`/api/resume-tailor/tailor/${encodeURIComponent(job.id)}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({}),
+      });
+
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload.error || "Tailoring failed");
+      }
+
+      const compiledPdfPath = payload?.data?.compiledPdfPath;
+      if (compiledPdfPath) {
+        const openPath = toPublicUploadPath(compiledPdfPath);
+        window.open(openPath, "_blank", "noopener,noreferrer");
+        setToast("Tailored resume ready. Opened in new tab");
+      } else {
+        setToast("Resume tailored successfully");
+      }
+    } catch (error) {
+      setToast(error.message || "Could not tailor resume");
+    } finally {
+      setTailoringJobId(null);
+    }
   }
 
   function handleCategoryClick(value) {
@@ -761,6 +944,7 @@ export default function App() {
   }
 
   const totalPages = pagination.pages || 1;
+  const displayedJobs = showSavedOnly ? jobs.filter((j) => savedJobIds.includes(j.id)) : jobs;
 
   function getPaginationPages() {
     const pages = [];
@@ -782,11 +966,44 @@ export default function App() {
             <span className="logo-text">SeekRemote<span className="logo-accent">Jobs</span></span>
           </a>
           <nav className="nav-links" aria-label="Primary navigation">
+            <a href="/" className="nav-link">Home</a>
             <a href="#jobs" className="nav-link" onClick={(e) => { e.preventDefault(); scrollToJobs(); }}>Browse Jobs</a>
-            <a href="#how-it-works" className="nav-link">How It Works</a>
-            <a href="#why-remote" className="nav-link">Why Remote</a>
-            <a href="#guide" className="nav-link">Career Guide</a>
+            <Link to="/dashboard" className="nav-link">Resume Optimizer</Link>
+            <a href="#guide" className="nav-link">Blog</a>
           </nav>
+          <div className="nav-auth-links" aria-label="Authentication">
+            {navUser ? (
+              <div className="nav-user-wrap" ref={navDropdownRef}>
+                <button
+                  className="nav-avatar-btn"
+                  onClick={() => setNavDropdownOpen((v) => !v)}
+                  aria-label="Account menu"
+                  aria-expanded={navDropdownOpen}
+                >
+                  <div className="nav-avatar-circle">{navUser.name?.charAt(0)?.toUpperCase() || "U"}</div>
+                  <span className="nav-avatar-name">{navUser.name?.split(" ")[0]}</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="nav-avatar-caret" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+                {navDropdownOpen && (
+                  <div className="nav-avatar-dropdown" role="menu">
+                    <div className="nav-dropdown-info">
+                      <p className="nav-dropdown-name">{navUser.name}</p>
+                      <p className="nav-dropdown-email">{navUser.email}</p>
+                    </div>
+                    <Link to="/dashboard" className="nav-dropdown-item" role="menuitem" onClick={() => setNavDropdownOpen(false)}>Dashboard</Link>
+                    <button className="nav-dropdown-item nav-dropdown-logout" role="menuitem" onClick={handleNavLogout}>Log Out</button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link to="/login" className="nav-auth-btn nav-auth-login">Log In</Link>
+                <Link to="/signup" className="nav-auth-btn nav-auth-signup">Sign Up</Link>
+              </>
+            )}
+          </div>
           <button className="btn-refresh-nav" onClick={refreshJobs} disabled={loading}>
             <span className={loading ? "spin" : ""}><Icons.RefreshCw /></span>
             {loading ? "Updating..." : "Refresh Jobs"}
@@ -797,9 +1014,18 @@ export default function App() {
         </div>
         {mobileMenuOpen && (
           <div className="mobile-menu">
+            <a href="/" onClick={() => setMobileMenuOpen(false)}>Home</a>
             <a href="#jobs" onClick={() => { scrollToJobs(); setMobileMenuOpen(false); }}>Browse Jobs</a>
-            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)}>How It Works</a>
-            <a href="#why-remote" onClick={() => setMobileMenuOpen(false)}>Why Remote</a>
+            <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Resume Optimizer</Link>
+            <a href="#guide" onClick={() => setMobileMenuOpen(false)}>Blog</a>
+            {navUser ? (
+              <button onClick={() => { handleNavLogout(); setMobileMenuOpen(false); }}>Log Out</button>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Log In</Link>
+                <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>Sign Up</Link>
+              </>
+            )}
             <button onClick={() => { refreshJobs(); setMobileMenuOpen(false); }} disabled={loading}>
               {loading ? "Updating..." : "↻ Refresh Jobs"}
             </button>
@@ -815,7 +1041,7 @@ export default function App() {
         <div className="hero-container">
           <div className="hero-badge">
             <span className="badge-pulse" />
-            <Icons.CheckCircle /> Updated daily &nbsp;·&nbsp; 100% free &nbsp;·&nbsp; No sign-up needed
+            <Icons.CheckCircle /> Remote jobs + AI resume builder &nbsp;·&nbsp; 100% free to start
           </div>
           <h1 className="hero-title">
             Find Your Next<br />
@@ -823,8 +1049,8 @@ export default function App() {
           </h1>
           <p className="hero-subtitle">
             Browse <strong>{stats.totalJobs.toLocaleString()}+</strong> remote opportunities from{" "}
-            <strong>{stats.totalCompanies}+</strong> top tech companies.
-            Work from anywhere, on your terms.
+            <strong>{stats.totalCompanies}+</strong> top tech companies and optimize applications with AI.
+            Upload your resume, get matched jobs, tailor by job description, and apply faster.
           </p>
           <form className="hero-search-bar" onSubmit={handleHeroSearch} role="search">
             <div className="hsb-input-wrap">
@@ -874,6 +1100,62 @@ export default function App() {
         </div>
       </section>
 
+      {/* AI RESUME BUILDER */}
+      <section className="ai-builder-section" id="ai-builder" aria-labelledby="ai-builder-heading">
+        <div className="section-wrap">
+          <div className="sec-label">AI tools</div>
+          <h2 className="sec-heading" id="ai-builder-heading">AI Resume Builder + Job Match Workflow</h2>
+          <p className="sec-sub">
+            Start with your resume, discover matching roles, then tailor your resume to each job description
+            in one guided flow.
+          </p>
+
+          <div className="ai-flow-grid">
+            <article className="ai-flow-card">
+              <div className="ai-step">01</div>
+              <h3>Upload or Build Resume</h3>
+              <p>Use AI parsing to extract skills, experience, and ATS signals from your resume PDF.</p>
+              <Link to="/signup" className="ai-flow-link">Start Builder</Link>
+            </article>
+
+            <article className="ai-flow-card">
+              <div className="ai-step">02</div>
+              <h3>Get Suggested Jobs</h3>
+              <p>See role matches based on your resume profile, skills, and experience alignment.</p>
+              <a
+                href="#jobs"
+                className="ai-flow-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToJobs();
+                }}
+              >
+                Browse Matched Jobs
+              </a>
+            </article>
+
+            <article className="ai-flow-card">
+              <div className="ai-step">03</div>
+              <h3>Tailor to Job Description</h3>
+              <p>Paste a target job description and generate a role-specific, remote-optimized resume version.</p>
+              <Link to="/login" className="ai-flow-link">Tailor My Resume</Link>
+            </article>
+
+            <article className="ai-flow-card">
+              <div className="ai-step">04</div>
+              <h3>Generate Cover Letter</h3>
+              <p>Create personalized cover letters that reflect your resume and each role context.</p>
+              <Link to="/login" className="ai-flow-link">Generate with AI</Link>
+            </article>
+          </div>
+
+          <div className="ai-builder-cta-row">
+            <Link to="/signup" className="ai-main-cta">Create Free Account</Link>
+            <Link to="/login" className="ai-secondary-cta">Already have an account? Log In</Link>
+          </div>
+        </div>
+      </section>
+
       {/* HOW IT WORKS */}
       <section className="how-section" id="how-it-works">
         <div className="section-wrap">
@@ -908,6 +1190,13 @@ export default function App() {
               <p className="jobs-sub">Real-time openings pulled directly from company career pages</p>
             </div>
             <div className="jobs-top-actions">
+              <button
+                className={`saved-toggle ${showSavedOnly ? "active" : ""}`}
+                onClick={() => setShowSavedOnly((v) => !v)}
+                title="Show only saved jobs from current results"
+              >
+                {showSavedOnly ? "★ Saved Only" : `☆ Saved (${savedJobIds.length})`}
+              </button>
               <div className="sort-toggle" role="group" aria-label="Sort order">
                 <button
                   className={`sort-btn ${sortBy === "mixed" ? "active" : ""}`}
@@ -979,16 +1268,33 @@ export default function App() {
               <div className="loading-dots"><span /><span /><span /></div>
               <p>Finding remote jobs…</p>
             </div>
-          ) : jobs.length === 0 ? (
+          ) : displayedJobs.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">🔍</div>
-              <h3>No remote jobs found</h3>
-              <p>Try adjusting your search or clearing filters.</p>
+              <h3>{showSavedOnly ? "No saved jobs in this result set" : "No remote jobs found"}</h3>
+              <p>{showSavedOnly ? "Turn off Saved Only or save jobs from the list first." : "Try adjusting your search or clearing filters."}</p>
               <button className="btn-primary" onClick={clearAllFilters}>Clear All Filters</button>
             </div>
           ) : (
-            <div className="jobs-list" role="list">
-              {jobs.reduce((acc, job, idx) => {
+            <>
+              {recentJobs.length > 0 && (
+                <div className="recent-jobs-panel">
+                  <div className="recent-header">
+                    <h3>Recently Viewed</h3>
+                    <button className="recent-clear" onClick={() => setRecentJobs([])}>Clear</button>
+                  </div>
+                  <div className="recent-list">
+                    {recentJobs.map((job) => (
+                      <button key={job.id} className="recent-chip" onClick={() => openJob(job)}>
+                        <span className="recent-company">{job.company}</span>
+                        <span className="recent-title">{job.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="jobs-list" role="list">
+                {displayedJobs.reduce((acc, job, idx) => {
                 const wt = getWorkType(job.location);
                 const worldwide = isWorldwideRemote(job.location);
                 acc.push(
@@ -996,9 +1302,9 @@ export default function App() {
                     className="job-card"
                     key={job.id}
                     role="listitem"
-                    onClick={() => setSelectedJob(job)}
+                    onClick={() => openJob(job)}
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === "Enter" && setSelectedJob(job)}
+                    onKeyDown={(e) => e.key === "Enter" && openJob(job)}
                   >
                     <CompanyLogo job={job} />
                     <div className="jc-body">
@@ -1025,6 +1331,37 @@ export default function App() {
                       </div>
                     </div>
                     <div className="jc-action">
+                      <button
+                        className="tailor-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          tailorResumeForJob(job);
+                        }}
+                        disabled={tailoringJobId === job.id}
+                        aria-label="Tailor resume for this job"
+                      >
+                        {tailoringJobId === job.id ? "Tailoring..." : "AI Tailor"}
+                      </button>
+                      <button
+                        className={`save-btn ${savedJobIds.includes(job.id) ? "saved" : ""}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSaveJob(job.id);
+                        }}
+                        aria-label={savedJobIds.includes(job.id) ? "Remove job from saved" : "Save job"}
+                      >
+                        {savedJobIds.includes(job.id) ? "★ Saved" : "☆ Save"}
+                      </button>
+                      <button
+                        className="share-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyJobLink(job);
+                        }}
+                        aria-label="Copy job link"
+                      >
+                        Copy Link
+                      </button>
                       <a
                         href={job.url}
                         target="_blank"
@@ -1039,7 +1376,7 @@ export default function App() {
                     </div>
                   </article>
                 );
-                if (ADSENSE_SLOTS.inFeed && (idx + 1) % 5 === 0 && idx !== jobs.length - 1) {
+                if (ADSENSE_SLOTS.inFeed && (idx + 1) % 5 === 0 && idx !== displayedJobs.length - 1) {
                   acc.push(
                     <div className="infeed-ad" key={`ad-${idx}`}>
                       <AdSenseAd slot={ADSENSE_SLOTS.inFeed} format="fluid" style={{ display: "block" }} />
@@ -1047,8 +1384,9 @@ export default function App() {
                   );
                 }
                 return acc;
-              }, [])}
-            </div>
+                }, [])}
+              </div>
+            </>
           )}
 
           {!loading && pagination.pages > 1 && (
@@ -1367,8 +1705,18 @@ export default function App() {
       </footer>
 
       {selectedJob && (
-        <JobSheet job={selectedJob} onClose={() => setSelectedJob(null)} />
+        <JobSheet
+          job={selectedJob}
+          onClose={() => setSelectedJob(null)}
+          isSaved={savedJobIds.includes(selectedJob.id)}
+          onToggleSave={toggleSaveJob}
+          onCopyLink={copyJobLink}
+          onTailorResume={tailorResumeForJob}
+          isTailoring={tailoringJobId === selectedJob.id}
+        />
       )}
+
+      {toast && <div className="action-toast">{toast}</div>}
 
       {showConsentBanner && (
         <div className="consent-banner" role="dialog" aria-label="Cookie consent" aria-modal="false">

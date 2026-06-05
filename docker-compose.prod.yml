@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: jobs-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: jobs
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    container_name: jobs-backend
+    environment:
+      # Auto-injected from .env.prod file
+      DATABASE_URL: ${DATABASE_URL}
+      GOOGLE_AI_API_KEY: ${GOOGLE_AI_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 4000
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+      ADMIN_REFRESH_TOKEN: ${ADMIN_REFRESH_TOKEN:-change-me}
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend
+    container_name: jobs-frontend
+    environment:
+      VITE_API_URL: ${API_URL:-http://localhost:4000}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Optional: Nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    container_name: jobs-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # For SSL certificates
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    # Uncomment below to enable (requires SSL certs in ./ssl/)
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: jobs-network

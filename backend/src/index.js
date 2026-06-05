@@ -1,5 +1,8 @@
+import "dotenv/config.js";
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import { crawlJobs, listSources } from "./crawlers.js";
 import {
   getJobs,
@@ -14,9 +17,17 @@ import {
   getAllJobs,
   getJobById,
 } from "./db.js";
+import { initResumeSchema } from "./migrations.js";
+import resumeRoutes from "./routes/resumes.js";
+import authRoutes from "./routes/auth.js";
+import oauthRoutes from "./routes/oauth.js";
+import tailoredResumeRoutes from "./routes/tailoredResumes.js";
+import { seedJobsDatabase } from "./seed.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const uploadsDir = path.join(__dirname, "../uploads");
 const REFRESH_MIN_INTERVAL_MS = Math.max(
   Number(process.env.REFRESH_MIN_INTERVAL_SECONDS || 900) * 1000,
   60 * 1000
@@ -58,6 +69,19 @@ function htmlEscape(value) {
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(uploadsDir));
+
+// Mount authentication routes
+app.use("/api/auth", authRoutes);
+
+// Mount OAuth routes (Google OAuth)
+app.use("/api/oauth", oauthRoutes);
+
+// Mount resume builder routes
+app.use("/api/resumes", resumeRoutes);
+
+// Mount job-specific tailoring routes
+app.use("/api/resume-tailor", tailoredResumeRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
@@ -541,6 +565,17 @@ app.get("/api/jobs-schema.json", async (_req, res) => {
 
 async function bootstrap() {
   try {
+    console.log("� Initializing database schema...");
+    await initResumeSchema();
+    
+    console.log("🌱 Seeding jobs database with 1000+ job listings...");
+    const seededCount = await seedJobsDatabase();
+    console.log(`✅ Seeded ${seededCount} job listings`);
+  } catch (error) {
+    console.warn("⚠️  Schema initialization or seeding error (may be expected on restart):", error.message);
+  }
+
+  try {
     console.log("🚀 Starting initial crawl...");
     refreshInProgress = true;
     const initial = await crawlJobs();
@@ -598,6 +633,15 @@ async function bootstrap() {
     console.log(`   - GET /api/stats - Get job statistics`);
     console.log(`   - GET /api/filters - Get filter options`);
     console.log(`   - POST /api/refresh - Refresh jobs from sources`);
+    console.log(`\n💼 Resume Builder & Job Matching Endpoints:`);
+    console.log(`   - POST /api/auth/signup-with-resume - Signup + baseline extraction`);
+    console.log(`   - POST /api/resumes/upload - Upload and process PDF resume`);
+    console.log(`   - GET /api/resumes/:resumeId - Get resume details`);
+    console.log(`   - POST /api/resumes/:resumeId/optimize - Optimize for job`);
+    console.log(`   - POST /api/resumes/:resumeId/cover-letter - Generate cover letter`);
+    console.log(`   - POST /api/resumes/:resumeId/match-jobs - Match against jobs`);
+    console.log(`   - GET /api/resumes/:resumeId/matches - Get match history`);
+    console.log(`   - POST /api/resume-tailor/tailor/:jobId - 1-click job tailoring`);
     console.log(`   - Refresh throttle: ${Math.round(REFRESH_MIN_INTERVAL_MS / 60000)} min between manual refreshes`);
     if (ADMIN_REFRESH_TOKEN) {
       console.log(`   - Admin bypass: send x-admin-token with force=true`);

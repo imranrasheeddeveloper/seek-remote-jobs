@@ -532,4 +532,5 @@ export function closeDatabase() {
 
 await initDb();
 
+export { exec };
 export default pool;
